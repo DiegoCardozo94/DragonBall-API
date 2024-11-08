@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CharacterCard(character: Character) {
+fun CharacterCard(character: Character, planet: Planet) {
     Card(
         modifier = Modifier
             .padding(16.dp)
@@ -114,10 +114,29 @@ fun CharacterCard(character: Character) {
 }
 
 @Composable
-fun CharactersList(characters: List<Character>) {
+fun CharactersList(characters: List<Character>, planets: List<Planet>) {
+
+    characters.forEach { character ->
+        Log.d("CharacterPlanetCheck", "Character: ${character.name}, Origin Planet ID: ${character.originPlanet?.id}")
+    }
+    planets.forEach { planet ->
+        Log.d("PlanetMapCheck", "Planet ID: ${planet.id}, Name: ${planet.name}")
+    }
+
+    val planetMap = planets.associateBy { it.id }
+
+    val charactersWithPlanets = characters.map { character ->
+        val originPlanetId = character.originPlanet?.id
+        val planet = if (originPlanetId != null) planetMap[originPlanetId] else null
+        character to (planet ?: Planet(id = -1, name = "Planeta desconocido"))
+    }
+
     LazyColumn {
-        items(characters) { character ->
-            CharacterCard(character = character)
+        items(charactersWithPlanets) { (character, planet) ->
+            CharacterCard(
+                planet = planet,
+                character = character
+            )
         }
     }
 }
@@ -125,11 +144,20 @@ fun CharactersList(characters: List<Character>) {
 @Composable
 fun MainScreen() {
     var characters by remember { mutableStateOf<List<Character>>(emptyList()) }
+    var planets by remember { mutableStateOf<List<Planet>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         fetchCharacters { result ->
             characters = result
+        }
+        fetchPlanets { result ->
+            planets = result
+        }
+    }
+
+    LaunchedEffect(characters, planets) {
+        if (characters.isNotEmpty() && planets.isNotEmpty()) {
             isLoading = false
         }
     }
@@ -137,7 +165,7 @@ fun MainScreen() {
     if (isLoading) {
         CircularProgressIndicator(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.primary)
     } else {
-        CharactersList(characters = characters)
+        CharactersList(characters = characters, planets = planets)
     }
 }
 
@@ -157,6 +185,28 @@ fun fetchCharacters(onResult: (List<Character>) -> Unit) {
         }
 
         override fun onFailure(call: Call<CharacterResponse>, t: Throwable) {
+            Log.e("MainScreen", "Error calling the API: ${t.message}")
+            t.printStackTrace()
+        }
+    })
+}
+
+fun fetchPlanets(onResult: (List<Planet>) -> Unit) {
+    RetrofitClient.instance.getPlanets().enqueue(object : Callback<PlanetResponse> {
+        override fun onResponse(call: Call<PlanetResponse>, response: Response<PlanetResponse>) {
+            if (response.isSuccessful) {
+                val planets = response.body()?.items
+                if (!planets.isNullOrEmpty()) {
+                    onResult(planets)
+                } else {
+                    Log.e("MainScreen", "Not found planets or the list is null")
+                }
+            } else {
+                Log.e("MainScreen", "Wrong response: ${response.code()}")
+            }
+        }
+
+        override fun onFailure(call: Call<PlanetResponse>, t: Throwable) {
             Log.e("MainScreen", "Error calling the API: ${t.message}")
             t.printStackTrace()
         }

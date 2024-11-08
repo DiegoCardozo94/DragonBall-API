@@ -1,8 +1,14 @@
 package com.example.dragonballapi
 
+import com.example.dragonballapi.Planet
 
 data class CharacterResponse(
     val items: List<Character>,
+    val meta: Meta
+)
+
+data class PlanetResponse(
+    val items: List<Planet>,
     val meta: Meta
 )
 
@@ -27,14 +33,6 @@ data class Character(
     val affiliation: String,
     val originPlanet: Planet,
     val transformations: List<Transformation> = emptyList()
-)
-
-data class Planet(
-    val id: Int,
-    val name: String,
-    val isDestroyed: Boolean,
-    val description: String,
-    val image: String
 )
 
 data class Transformation(

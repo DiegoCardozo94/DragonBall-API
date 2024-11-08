@@ -6,4 +6,6 @@ import retrofit2.http.GET
 interface DragonBallApiService {
     @GET("characters")
     fun getCharacters(): Call<CharacterResponse>
+    @GET("planets")
+    fun getPlanets(): Call<PlanetResponse>
 }
