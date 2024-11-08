@@ -97,7 +97,7 @@ fun CharacterCard(character: Character, planet: Planet) {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
-                text = "Planeta: ${character.originPlanet?.name ?: "Desconocido"}",
+                text = "Afiliacion: ${character.affiliation}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Black,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -109,44 +109,107 @@ fun CharacterCard(character: Character, planet: Planet) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            character.transformations?.forEach { transformation ->
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Transformation: ${transformation.name}",
-                    fontWeight = FontWeight.Bold
-                )
-                Image(
-                    painter = rememberAsyncImagePainter(transformation.image),
-                    contentDescription = "Transformation Image",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .padding(bottom = 8.dp),
-                    contentScale = ContentScale.Crop
-                )
-                Text(
-                    text = "Ki: ${transformation.ki}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Black
-                )
-            }
+            Image(
+                painter = rememberAsyncImagePainter(planet.image),
+                contentDescription = "Character Image",
+                modifier = Modifier
+                    .size(150.dp)
+                    .padding(bottom = 10.dp),
+                contentScale = ContentScale.Fit
+            )
+            Text(
+                text = planet.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
     }
 }
 
 @Composable
-fun CharactersList(characters: List<Character>, planets: List<Planet>) {
-    characters.forEach { character ->
-        Log.d("CharacterPlanetCheck", "Character: ${character.name}, Origin Planet ID: ${character.originPlanet?.id}")
+fun PlanetCard(planet: Planet) {
+    Card(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium.copy(CornerSize(16.dp)),
+        elevation = CardDefaults.elevatedCardElevation(4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(planet.image),
+                contentDescription = "Planet Image",
+                modifier = Modifier
+                    .size(150.dp)
+                    .padding(bottom = 10.dp),
+                contentScale = ContentScale.Fit
+            )
+            Text(
+                text = planet.name,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "Description: ${planet.description}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
     }
-    planets.forEach { planet ->
-        Log.d("PlanetMapCheck", "Planet ID: ${planet.id}, Name: ${planet.name}")
-    }
+}
 
+@Composable
+fun CharacterTransformations(character: Character, transformations: List<Transformation>) {
+    if (transformations.isNotEmpty()) {
+        transformations.forEach { transformation ->
+            Log.d("CharacterPlanetCheck", "Character: ${character.name}, Transformation: ${transformation.name}")
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Transformation: ${transformation.name}",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Image(
+                painter = rememberAsyncImagePainter(transformation.image),
+                contentDescription = "Transformation Image",
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(bottom = 8.dp),
+                contentScale = ContentScale.Crop
+            )
+            Text(
+                text = "Ki: ${transformation.ki}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Black
+            )
+        }
+    } else {
+        Text(
+            text = "No transformations available.",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray
+        )
+    }
+}
+
+@Composable
+fun CharactersList(characters: List<Character>, planets: List<Planet>) {
     val planetMap = planets.associateBy { it.id }
+
     val charactersWithPlanets = characters.map { character ->
         val originPlanetId = character.originPlanet?.id
-        val planet = if (originPlanetId != null) planetMap[originPlanetId] else null
-        character to (planet ?: Planet(id = -1, name = "Desconocido"))
+        val planet = originPlanetId?.let { planetMap[it] } ?: Planet(id = -1, name = "Desconocido", description = "desconocido", image = "desconocido", isDestroyed = false)
+
+        character to planet
     }
 
     Column(
@@ -159,7 +222,7 @@ fun CharactersList(characters: List<Character>, planets: List<Planet>) {
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
-        ),
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
@@ -168,10 +231,15 @@ fun CharactersList(characters: List<Character>, planets: List<Planet>) {
 
         LazyColumn {
             items(charactersWithPlanets) { (character, planet) ->
-                CharacterCard(
-                    planet = planet,
-                    character = character
-                )
+                CharacterCard(character = character, planet = planet)
+                val transformations = character.transformations ?: emptyList()
+                CharacterTransformations(character = character, transformations = transformations)
+            }
+
+            item { Spacer(modifier = Modifier.height(32.dp)) }
+
+            items(planets) { planet ->
+                PlanetCard(planet = planet)
             }
         }
     }
@@ -180,16 +248,14 @@ fun CharactersList(characters: List<Character>, planets: List<Planet>) {
 @Composable
 fun MainScreen() {
     var characters by remember { mutableStateOf<List<Character>>(emptyList()) }
+    var character by remember { mutableStateOf(characters) }
     var planets by remember { mutableStateOf<List<Planet>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        fetchCharacters { result ->
-            characters = result
-        }
-        fetchPlanets { result ->
-            planets = result
-        }
+        fetchCharacters { result -> characters = result }
+        fetchPlanets { result -> planets = result }
+        fechtCharacter { result -> character = result }
     }
 
     LaunchedEffect(characters, planets) {
@@ -245,6 +311,25 @@ fun fetchPlanets(onResult: (List<Planet>) -> Unit) {
         override fun onFailure(call: Call<PlanetResponse>, t: Throwable) {
             Log.e("MainScreen", "Error calling the API: ${t.message}")
             t.printStackTrace()
+        }
+    })
+}
+
+fun fechtCharacter(onResult: (List<Character>) -> Unit){
+    val call = RetrofitClient.instance.getCharacterDetails(characterId = 1)
+    call.enqueue(object : Callback<Character> {
+        override fun onResponse(call: Call<Character>, response: Response<Character>) {
+            if (response.isSuccessful) {
+                val character = response.body()
+
+                Log.d("Character Info", "Origin Planet: ${character?.originPlanet?.name}")
+            } else {
+                Log.e("API Error", "Error: ${response.message()}")
+            }
+        }
+
+        override fun onFailure(call: Call<Character>, t: Throwable) {
+            Log.e("API Failure", t.message ?: "Unknown error")
         }
     })
 }

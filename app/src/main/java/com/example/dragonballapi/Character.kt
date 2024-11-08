@@ -31,7 +31,7 @@ data class Character(
     val description: String,
     val image: String,
     val affiliation: String,
-    val originPlanet: Planet,
+    val originPlanet: Planet?,
     val transformations: List<Transformation> = emptyList()
 )
 

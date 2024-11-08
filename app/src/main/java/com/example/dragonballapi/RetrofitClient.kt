@@ -50,4 +50,5 @@ object RetrofitClient {
             .build()
             .create(DragonBallApiService::class.java)
     }
+
 }
