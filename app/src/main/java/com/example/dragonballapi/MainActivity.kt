@@ -15,10 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.dragonballapi.ui.theme.DragonBallAPITheme
 import retrofit2.Call
@@ -71,10 +73,15 @@ fun CharacterCard(character: Character, planet: Planet) {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
-                text = character.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-                textAlign = TextAlign.Center,
+                text = "Raza: ${character.race}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "Genero: ${character.gender}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Black,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
@@ -84,9 +91,22 @@ fun CharacterCard(character: Character, planet: Planet) {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
+                text = "MaxKi: ${character.maxKi}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
                 text = "Planeta: ${character.originPlanet?.name ?: "Desconocido"}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = character.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             character.transformations?.forEach { transformation ->
@@ -115,7 +135,6 @@ fun CharacterCard(character: Character, planet: Planet) {
 
 @Composable
 fun CharactersList(characters: List<Character>, planets: List<Planet>) {
-
     characters.forEach { character ->
         Log.d("CharacterPlanetCheck", "Character: ${character.name}, Origin Planet ID: ${character.originPlanet?.id}")
     }
@@ -124,19 +143,36 @@ fun CharactersList(characters: List<Character>, planets: List<Planet>) {
     }
 
     val planetMap = planets.associateBy { it.id }
-
     val charactersWithPlanets = characters.map { character ->
         val originPlanetId = character.originPlanet?.id
         val planet = if (originPlanetId != null) planetMap[originPlanetId] else null
-        character to (planet ?: Planet(id = -1, name = "Planeta desconocido"))
+        character to (planet ?: Planet(id = -1, name = "Desconocido"))
     }
 
-    LazyColumn {
-        items(charactersWithPlanets) { (character, planet) ->
-            CharacterCard(
-                planet = planet,
-                character = character
-            )
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
+    ) {
+        Text(
+            text = "The Dragon Ball API",
+            style = TextStyle(
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+        ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            textAlign = TextAlign.Center
+        )
+
+        LazyColumn {
+            items(charactersWithPlanets) { (character, planet) ->
+                CharacterCard(
+                    planet = planet,
+                    character = character
+                )
+            }
         }
     }
 }
