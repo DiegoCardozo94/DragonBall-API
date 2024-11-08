@@ -179,13 +179,39 @@ fun CharactersList(characters: List<Character>, planets: List<Planet>) {
                 .padding(16.dp),
             textAlign = TextAlign.Center
         )
-
         LazyColumn {
+            item {
+                Text(
+                    text = "Personajes",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+
             items(charactersWithPlanets) { (character, planet) ->
                 CharacterCard(character = character, planet = planet)
             }
-
-            item { Spacer(modifier = Modifier.height(32.dp)) }
+            item {
+                Text(
+                    text = "Planetas",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
 
             items(planets) { planet ->
                 PlanetCard(planet = planet)
