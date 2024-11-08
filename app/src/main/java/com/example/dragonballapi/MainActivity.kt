@@ -109,21 +109,6 @@ fun CharacterCard(character: Character, planet: Planet) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            Image(
-                painter = rememberAsyncImagePainter(planet.image),
-                contentDescription = "Character Image",
-                modifier = Modifier
-                    .size(150.dp)
-                    .padding(bottom = 10.dp),
-                contentScale = ContentScale.Fit
-            )
-            Text(
-                text = planet.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
         }
     }
 }
@@ -168,40 +153,6 @@ fun PlanetCard(planet: Planet) {
 }
 
 @Composable
-fun CharacterTransformations(character: Character, transformations: List<Transformation>) {
-    if (transformations.isNotEmpty()) {
-        transformations.forEach { transformation ->
-            Log.d("CharacterPlanetCheck", "Character: ${character.name}, Transformation: ${transformation.name}")
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Transformation: ${transformation.name}",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodySmall
-            )
-            Image(
-                painter = rememberAsyncImagePainter(transformation.image),
-                contentDescription = "Transformation Image",
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(bottom = 8.dp),
-                contentScale = ContentScale.Crop
-            )
-            Text(
-                text = "Ki: ${transformation.ki}",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Black
-            )
-        }
-    } else {
-        Text(
-            text = "No transformations available.",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
-        )
-    }
-}
-
-@Composable
 fun CharactersList(characters: List<Character>, planets: List<Planet>) {
     val planetMap = planets.associateBy { it.id }
 
@@ -232,8 +183,6 @@ fun CharactersList(characters: List<Character>, planets: List<Planet>) {
         LazyColumn {
             items(charactersWithPlanets) { (character, planet) ->
                 CharacterCard(character = character, planet = planet)
-                val transformations = character.transformations ?: emptyList()
-                CharacterTransformations(character = character, transformations = transformations)
             }
 
             item { Spacer(modifier = Modifier.height(32.dp)) }
